@@ -1,0 +1,9 @@
+systemctl disable cloud9.service
+systemctl disable bonescript.service
+systemctl disable bonescript.socket
+systemctl disable bonescript-autorun.service
+
+systemctl enable cloud9.service
+systemctl enable bonescript.service
+systemctl enable bonescript.socket
+systemctl enable bonescript-autorun.service

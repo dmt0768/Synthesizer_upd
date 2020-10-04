@@ -1,0 +1,10 @@
+Enable:
+sudo update-rc.d run_server_for_synth defaults
+
+Disable:
+sudo update-rc.d run_server_for_synth remove
+
+
+Program path:
+/etc/init.d/run_server_for_synth remove
+

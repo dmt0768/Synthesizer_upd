@@ -1,0 +1,218 @@
+
+<html>
+    <head>
+        <title>Панель управления</title>
+        <style>
+
+            body {
+                background: linear-gradient(#e66465, #9198e5);
+                padding-left: 30px;
+                padding-right: 30px;
+                 }
+
+            h1 {
+                font: italic 2.8em "Fira Sans", serif;
+               }
+
+            button {
+                box-shadow:inset 0px 1px 3px 0px #91b8b3;
+                background:linear-gradient(to bottom, #dbe1ff 5%, #00289e 100%);
+                background-color:#dbe1ff;
+                border-radius:8px;
+                border:1px solid #111682;
+                display:inline-block;
+                cursor:pointer;
+                color:#ffffff;
+                font-family:Arial;
+                font-size:15px;
+                font-weight:bold;
+                padding:11px 23px;
+                text-decoration:none;
+                text-shadow:0px 5px 6px #040f0d;
+                }
+
+            button:active {
+                position:relative;
+                top:5px;
+                }
+
+            input[type=text] {
+                border: 2px solid black;
+                border-radius: 6px;
+                background-color:	#E8F5FF;
+                }
+
+            textarea {
+                width: 500pt;
+                height: 80pt;
+                padding: 12px 20px;
+                box-sizing: border-box;
+                border: 2px solid #ccc;
+                border-radius: 4px;
+                background-color: #f8f8f8;
+                font-size: 16px;
+                resize: none;
+                }
+
+            p {
+                font-family:verdana;
+                }
+
+            input::placeholder {
+                color: #666666;
+                font-size: 1.1em;
+                font-style: italic;
+                }
+
+         </style>
+    </head>
+    <body>
+        <h1 style="text-align: center;">Панель управления синтезатором</h1>
+        <p><p><hr>
+
+            <div id="cnt">
+            {% for line in Lines %}
+
+                <p>CKOUT {{line.id}}</p>
+
+                <form id="form{{line.id}}" autocomplete="off" style="display:inline">
+                    <p>INPUT {{line.id}}, Hz: <input id="input" type="text" readonly name="input_freq" placeholder="{{line.input_freq}}" value="{{line.input_freq}}"> &nbsp; &nbsp; &nbsp;
+                    OUTPUT {{line.id}}, Hz: <input id="output" type="text" name="output_freq" placeholder="{{line.output_freq}}" value="{{line.output_freq}}"> &nbsp; &nbsp; &nbsp;
+                    Статус: <input type="text" readonly name="status" value="{{line.status}}"> </p>
+                    <button id="button" type="button" name="edit" value="{{line.id}}" onclick="edit_page('form{{line.id}}')">Отправить и запустить</button>
+                </form>
+
+                <button name="stop" type="button" onclick="stop_page(this.value, this.name)" value="{{line.id}}" style="display:inline">Остановить</button>
+                <p><br></p>
+
+                <hr>
+
+            {%endfor%}
+            </div>
+
+            <form  style = "position:fixed; left:800pt; top:70pt;">
+                <p >Сообщения:</p>
+                <textarea id="frequency" readonly>Загрузка...</textarea>
+            </form>
+
+             <script>
+                    function edit_page(id) {
+                        var edit = document.getElementById(id).button.value;  // Порт с каким id редактируем?
+                        var input_freq = document.getElementById(id).input.value;  // input freq
+                        var output_freq = document.getElementById(id).output.value;  // Новая частота
+
+                        //window.alert(edit);
+                        //window.alert(number);
+                        //window.alert(freq);
+
+                        var xhr = new XMLHttpRequest();
+                        var url = new URL('qq://edit_page/');
+                        url.searchParams.set('edit', edit);
+                        url.searchParams.set('input_freq', input_freq);
+                        url.searchParams.set('output_freq', output_freq);
+
+                        xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+
+                        //window.alert(url.toString().slice(5));
+
+                        xhr.open("GET", url.toString().slice(5), true);
+                        xhr.send();
+                    }
+                </script>
+
+            <div style = "position:fixed; left:800pt; top:240pt;">
+            <button onclick="install_default()">Сброс устройства (настройки по-умолчанию)</button>
+            <p></p>
+            <button onclick="refresh_page()">Перерзагрузить страницу</button>
+            </div>
+
+            <script>
+
+                function install_default() {
+
+                    var xhr = new XMLHttpRequest()
+                    xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+                    xhr.open("GET", "install_default", true)
+                    xhr.send()
+                    }
+
+                function create_page() {
+
+                    var xhr = new XMLHttpRequest()
+                    xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+                    xhr.open("GET", "create_page", true)
+                    xhr.send()
+                    }
+
+                function refresh_page() {
+
+                    var xhr = new XMLHttpRequest()
+                    xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+                    xhr.open("GET", "refresh_page", true)
+                    xhr.send()
+                    }
+
+                function delete_page(value, name) {
+
+                    var xhr = new XMLHttpRequest();
+                    var url = new URL('qq://delete_page/');
+                    url.searchParams.set(name, value);
+                    <!-- window.alert(url.toString().slice(5)); -->
+
+                    xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+                    xhr.open("GET", url.toString().slice(5), true)
+                    xhr.send()
+                    }
+
+                function stop_page(value, name) {
+
+                    var xhr = new XMLHttpRequest();
+                    var url = new URL('qq://stop_page/');
+                    url.searchParams.set(name, value);
+                    <!-- window.alert(url.toString().slice(5)); -->
+
+                    xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+                    xhr.open("GET", url.toString().slice(5), true)
+                    xhr.send()
+                    }
+
+            </script>
+            <p></p>
+
+
+
+    </body>
+
+    <script>
+        var myVar = setInterval(myTimer, 500);
+
+        function myTimer() {
+        var xhr = new XMLHttpRequest()
+        xhr.onload = function() {
+            var serverResponse = document.getElementById("frequency")
+            serverResponse.innerHTML = this.responseText
+            }
+        xhr.open("GET", "test", true)
+        xhr.send()}
+   </script>
+
+
+</html>

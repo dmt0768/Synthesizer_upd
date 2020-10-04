@@ -1,0 +1,17 @@
+            {% for line in Lines %}
+
+                <p>CKOUT {{line.id}}</p>
+
+                <form id="form{{line.id}}" autocomplete="off" style="display:inline">
+                    <p>INPUT {{line.id}}, Hz: <input id="input" type="text" readonly name="input_freq" placeholder="{{line.input_freq}}" value="{{line.input_freq}}"> &nbsp; &nbsp; &nbsp;
+                    OUTPUT {{line.id}}, Hz: <input id="output" type="text" name="output_freq" placeholder="{{line.output_freq}}" value="{{line.output_freq}}"> &nbsp; &nbsp; &nbsp;
+                    Статус: <input type="text" readonly name="status" value="{{line.status}}"> </p>
+                    <button id="button" type="button" name="edit" value="{{line.id}}" onclick="edit_page('form{{line.id}}')">Отправить и запустить</button>
+                </form>
+
+                <button name="stop" type="button" onclick="stop_page(this.value, this.name)" value="{{line.id}}" style="display:inline">Остановить</button>
+                <p><br></p>
+
+                <hr>
+
+            {%endfor%}
