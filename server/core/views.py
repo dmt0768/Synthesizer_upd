@@ -29,8 +29,6 @@ set_inc_write = int('01100000',2)  # Запись с инкрементом ад
 first_adr = 0  # Самый первый номер регистра
 
 
-print('ADD CODE HERE')
-
 #_______________________________________
 def is_integer(n):
     try:
@@ -181,6 +179,12 @@ def AJAX_test(request):  # Вывод сообщений
 
     return HttpResponse(str(status))
 
-@require_http_methods(["POST"])
 def turn_on(request):
+    content = Lines.objects.filter(id=int(request.GET['edit']))[0]
+    if request.GET['turn_on'] == 'true':
+        content.turn_on = 1
+    else:
+        content.turn_on = 0
+    content.save()
+    print('\n\n\n\n\n')
     return HttpResponse()
