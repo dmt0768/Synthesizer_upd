@@ -1,21 +1,25 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-
 from core.models import Lines, Registers
+from .div_calc import get_multiplier
 
 import random
+debug_mode = False
 
 status = ['OK']
 
-import Adafruit_BBIO.SPI as SPI  # Библиотеку Adafruit_BBIO надо будет ещё
-                                 # скачать через pip
+if not debug_mode:
+    import Adafruit_BBIO.SPI as SPI  # Библиотеку Adafruit_BBIO надо будет ещё
+                                     # скачать через pip
 import time
 
 # Настроим наш SPI
-spi = SPI.SPI(1,0)  # Используем SPI 1 (он же SPI 0, нумерация с 1)
-spi.msh = 1000000  # По-умолчанию тут 16 000 000
-spi.mode = int('11', 2)
-spi.cshigh = False
+
+if not debug_mode:
+    spi = SPI.SPI(1,0)  # Используем SPI 1 (он же SPI 0, нумерация с 1)
+    spi.msh = 1000000  # По-умолчанию тут 16 000 000
+    spi.mode = int('11', 2)
+    spi.cshigh = False
 
 set_adr = 0  # Команда на считывание адреса
 set_write = int('01000000',2)  # Запись в регистр
@@ -106,26 +110,7 @@ def refresh_page(request):  # Обновляет меняющуюся часть
     status = ['OK']
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
-'''f
-def create_line(request):  # Не используемый функционал
 
-    #  Добваление id вручную
-    if len(Lines.objects.all()) != 0:
-        max_id = max([i.id for i in Lines.objects.all()]) + 1
-    else: max_id = 1
-    Lines.objects.create(id=max_id).save()
-    content = Lines.objects.all()
-
-    return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
-
-
-def delete_line(request):
-    victim = Lines.objects.filter(id=int(request.GET['delete']))[0]
-    victim.delete()
-    content = Lines.objects.all()
-    return render(request, 'core/Create_tmpl.html', {'Lines':content})
-'''
-from .div_calc import get_multiplier
 
 def edit_line(request):  # Отправка данный в синтезатор
     global status
