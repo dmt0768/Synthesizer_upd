@@ -67,6 +67,7 @@
          </style>
     </head>
     <body>
+        {% csrf_token %}
         <h1 style="text-align: center;">Панель управления синтезатором</h1>
         <p><p><hr>
 
@@ -79,7 +80,7 @@
                     <p>INPUT {{line.id}}, Hz: <input id="input" type="text" readonly name="input_freq" placeholder="{{line.input_freq}}" value="{{line.input_freq}}"> &nbsp; &nbsp; &nbsp;
                     OUTPUT {{line.id}}, Hz: <input id="output" type="text" name="output_freq" placeholder="{{line.output_freq}}" value="{{line.output_freq}}"> &nbsp; &nbsp; &nbsp;
                     Статус: <input type="text" readonly name="status" value="{{line.status}}"> </p>
-                    <p><input type="checkbox" name="a" value="1417">Включить канал</p>
+                    <p><input type="checkbox" name="turn_on" value="1417" onclick="turn('form{{line.id}}')" >Включить канал</p>
                     <button id="button" type="button" name="edit" value="{{line.id}}" onclick="edit_page('form{{line.id}}')">Рассчитать и отправить</button>
                 </form>
 
@@ -97,12 +98,31 @@
             </form>
 
              <script>
+
+                    function turn(id) {
+
+                        var turn_on = document.getElementById(id).turn_on.checked;
+
+                        var xhr = new XMLHttpRequest();
+                        var url = new URL('qq://turn_on/');
+                        url.searchParams.set('turn_on', turn_on)
+
+                        xhr.onload = function() {
+                        var serverResponse = document.getElementById("cnt")
+                        serverResponse.innerHTML = this.responseText
+                        }
+
+                        window.alert(url.toString().slice(5));
+
+                        xhr.open("GET", url.toString().slice(5), true);
+                    }
+
                     function edit_page(id) {
                         var edit = document.getElementById(id).button.value;  // Порт с каким id редактируем?
                         var input_freq = document.getElementById(id).input.value;  // input freq
                         var output_freq = document.getElementById(id).output.value;  // Новая частота
-
-                        //window.alert(edit);
+                        var turn_on = document.getElementById(id).turn_on.checked;
+                        //window.alert(turn_on);
                         //window.alert(number);
                         //window.alert(freq);
 
@@ -111,13 +131,14 @@
                         url.searchParams.set('edit', edit);
                         url.searchParams.set('input_freq', input_freq);
                         url.searchParams.set('output_freq', output_freq);
+                        url.searchParams.set('turn_on', turn_on)
 
                         xhr.onload = function() {
                         var serverResponse = document.getElementById("cnt")
                         serverResponse.innerHTML = this.responseText
                         }
 
-                        //window.alert(url.toString().slice(5));
+                        window.alert(url.toString().slice(5));
 
                         xhr.open("GET", url.toString().slice(5), true);
                         xhr.send();

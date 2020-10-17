@@ -1,5 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.http import require_http_methods
+
 from core.models import Lines, Registers
 from .div_calc import get_multiplier
 
@@ -178,3 +180,7 @@ def stop_line(request):  # Подача 0 на выход синтезатора
 def AJAX_test(request):  # Вывод сообщений
 
     return HttpResponse(str(status))
+
+@require_http_methods(["POST"])
+def turn_on(request):
+    return HttpResponse()
