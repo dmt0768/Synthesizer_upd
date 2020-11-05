@@ -63,6 +63,7 @@ def install_default(request):
     for i in reg:
 
         spi.writebytes([set_adr, i.id])  # Установка очередного адреса
+        print(i.default_value[0:2])
         spi.writebytes([set_write,int(i.default_value[0:2], 16)])
         i.value = i.default_value
         i.save()
