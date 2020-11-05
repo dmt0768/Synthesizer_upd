@@ -58,15 +58,6 @@ def install_default(request):
 
     time.sleep(1)
 
-    '''l
-    for i in reg:
-
-        spi.writebytes([set_adr, i.id])  # Установка очередного адреса
-        spi.writebytes([set_write, i.default_value])
-        #i.value = i.default_value
-
-    status = ['Default']'''
-
     #time.sleep(0.1)
 
     for i in reg:
@@ -75,25 +66,8 @@ def install_default(request):
         spi.writebytes([set_write,int(i.value[0:2], 16)])
         #i.value = i.default_value
         #i.save()
-    '''k
 
-    status = ['1 MHz']
-    time.sleep(5)
-
-    spi.writebytes([set_adr, 136])  # Установка очередного адреса
-    spi.writebytes([set_write, 64])  # ICAL
-    '''
-
-    status = ['1 MHz + ICAL']
-
-
-    '''for i in reg:
-        global status
-        #spi.write([set_adr, i.id])  # Установка очередного адреса
-        #spi.xfer2([set_write, i.default_value])
-        i.value = i.default_value
-        status = ['Data is send']'''
-
+    status = ['Default: 1 MHz + ICAL']
 
     return render(request, 'core/Create_tmpl.html', {'Lines': content})
 
