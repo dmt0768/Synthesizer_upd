@@ -17,6 +17,6 @@ class Lines(models.Model):
 class Registers(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.IntegerField(blank=True, null=True)
-    value = models.IntegerField(blank=True, null=True)
-    default_value = models.IntegerField()
+    value = models.CharField(blank=True, null=True, max_length=20)
+    default_value = models.CharField(blank=True, null=True, max_length=20)
 

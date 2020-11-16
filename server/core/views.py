@@ -5,15 +5,16 @@ from django.views.decorators.http import require_http_methods
 from core.models import Lines, Registers
 from .div_calc import get_multiplier
 
-import random
-debug_mode = False
+import time
+
+debug_mode = True
 
 status = ['OK']
 
 if not debug_mode:
     import Adafruit_BBIO.SPI as SPI  # Библиотеку Adafruit_BBIO надо будет ещё
                                      # скачать через pip
-import time
+
 
 # Настроим наш SPI
 
@@ -38,6 +39,22 @@ def is_integer(n):
         return False
 
 #_______________________________________
+
+
+def init():
+    reg = Registers.objects.all()
+    for i in reg:
+
+        spi.writebytes([set_adr, i.id])  # Установка очередного адреса
+        spi.writebytes([set_write,int(i.value[0:2], 16)])
+        i.value = i.default_value
+        i.save()
+
+    return
+
+
+init()
+
 
 def install_default(request):
     content = Lines.objects.all()
@@ -64,8 +81,8 @@ def install_default(request):
 
         spi.writebytes([set_adr, i.id])  # Установка очередного адреса
         spi.writebytes([set_write,int(i.default_value[0:2], 16)])
-        #i.value = i.default_value
-        #i.save()
+        i.value = i.default_value
+        i.save()
 
     status = ['Default: 1 MHz + ICAL']
 
