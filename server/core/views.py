@@ -145,7 +145,7 @@ def edit_line(request):  # Отправка данный в синтезатор
         for i in reg:
             spi.writebytes([set_adr, i])  # Установка очередного адреса
             spi.writebytes([set_write, reg[i]])
-            j = reg_db.filter(id=i)
+            j = reg_db.filter(id=i)[0]
             j.value = reg[i]
             j.save()
 
