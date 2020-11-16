@@ -100,10 +100,8 @@ def refresh_page(request):  # Обновляет меняющуюся часть
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
 
-
 def edit_line(request):  # Отправка данный в синтезатор
     global status
-    reg_db = Registers.objects.all()
     #print('\n\n\n\n\n' + str(request.GET) + '\n\n\n\n\n')
     edit = Lines.objects.filter(id=int(request.GET['edit']))[0]
     temp = request.GET
@@ -146,7 +144,7 @@ def edit_line(request):  # Отправка данный в синтезатор
             spi.writebytes([set_adr, i])  # Установка очередного адреса
             spi.writebytes([set_write, reg[i]])
         for i in reg:
-            j = Lines.objects.filter(id=i)[0]
+            j = Registers.objects.filter(id=i)[0]
             print(j.value)
             j.value = format(reg[i], '02x')+'h'
             j.save()
