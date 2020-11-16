@@ -47,8 +47,6 @@ def init():
 
         spi.writebytes([set_adr, i.id])  # Установка очередного адреса
         spi.writebytes([set_write,int(i.value[0:2], 16)])
-        i.value = i.default_value
-        i.save()
 
     return
 
@@ -105,6 +103,7 @@ def refresh_page(request):  # Обновляет меняющуюся часть
 
 def edit_line(request):  # Отправка данный в синтезатор
     global status
+    reg_db = Registers.objects.all()
     #print('\n\n\n\n\n' + str(request.GET) + '\n\n\n\n\n')
     edit = Lines.objects.filter(id=int(request.GET['edit']))[0]
     temp = request.GET
@@ -146,10 +145,12 @@ def edit_line(request):  # Отправка данный в синтезатор
         for i in reg:
             spi.writebytes([set_adr, i])  # Установка очередного адреса
             spi.writebytes([set_write, reg[i]])
+            j = reg_db.filter(id=i)
+            j.value = reg[i]
+            j.save()
 
         spi.writebytes([set_adr, 136])  # Установка очередного адреса
         spi.writebytes([set_write, 64])  # ICAL
-        #status = (bin(reg27), res[0]['N1_LS'])
         status = res
 
 

@@ -3,7 +3,7 @@ from fractions import Fraction
 
 def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, des_error: float = 0.1, max_error: float = 30, divider_limit : float = 5):
 
-    for cheat in [0.1,0.5,1,2,3,4,5,6]:
+    for cheat in [0.1,0.5,1,2,3,4,5,6]:  # Cheat cycle
 
         flag = True
 
@@ -140,7 +140,7 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
                 flag = 'PLL out frequency test failed!'
 
 
-        print(cheat, flag)
+        #print(cheat, flag)
         if flag == True: break  # Cheat cycle
 
     freq = float(fr_in) * res['N2_HS'] * res['N2_LS'] / (res['N1_HS'] * res['N1_LS'] * res['N3'])
@@ -154,7 +154,7 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
     res['N2_HS'] = res['N2_HS'] - 4
     res['N2_LS'] = res['N2_LS'] - 1
     res['N3'] = res['N3'] - 1
-
+    '''
     # Проверим наш код
     if __name__ == '__main__':
         print('N1_HS =', res['N1_HS'])
@@ -167,8 +167,10 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
         print('Фактическая частота = ', freq)
         print('Отклонение', err)
         print('Статус:', flag)
-
+    '''
     return [res, {'freq':freq, 'err':err, 'status': flag}]
 
 if __name__ == '__main__':
-    get_multiplier('1'+'000'+'006')
+    for i in range(1000000, 500000000, 1000):
+        if (get_multiplier(str(i))[1]['status'] is not True) or get_multiplier(str(i))[1]['err'] > 5:
+            print('freq =', i)
