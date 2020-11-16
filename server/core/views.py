@@ -46,7 +46,7 @@ def init():
     for i in reg:
 
         spi.writebytes([set_adr, i.id])  # Установка очередного адреса
-        spi.writebytes([set_write,int(i.value[0:2], 16)])
+        spi.writebytes([set_write, int(i.value[0:2], 16)])
 
     return
 
@@ -147,8 +147,10 @@ def edit_line(request):  # Отправка данный в синтезатор
             spi.writebytes([set_write, reg[i]])
         for i in reg:
             j = reg_db.filter(id=i)[0]
+            print(j.value)
             j.value = reg[i]
             j.save()
+            print(j.value)
 
         spi.writebytes([set_adr, 136])  # Установка очередного адреса
         spi.writebytes([set_write, 64])  # ICAL
