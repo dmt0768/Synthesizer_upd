@@ -52,8 +52,8 @@ def init():
 
     return
 
-
-init()
+if not debug_mode:
+    init()
 
 
 def install_default(request):
