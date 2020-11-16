@@ -7,7 +7,7 @@ from .div_calc import get_multiplier
 
 import time
 
-debug_mode = True
+debug_mode = False
 
 status = ['OK']
 
