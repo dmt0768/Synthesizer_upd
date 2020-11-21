@@ -171,6 +171,6 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
     return [res, {'freq':freq, 'err':err, 'status': flag}]
 
 if __name__ == '__main__':
-    for i in range(1000000, 500000000, 1000):
-        if (get_multiplier(str(i))[1]['status'] is not True) or get_multiplier(str(i))[1]['err'] > 5:
+    for i in range(50000000, 500000000, 1000):
+        if (get_multiplier(str(i))[1]['status'] is not True) or get_multiplier(str(i))[1]['err'] > 30:
             print('freq =', i)

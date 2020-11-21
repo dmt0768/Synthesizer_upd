@@ -38,10 +38,26 @@ def is_integer(n):
     except ValueError:
         return False
 
+
+def format_int(x):
+    return format(x, '02x') + 'h'
+
+
+def invert_int(x):
+    '''
+    ans = ''
+    print(format(x, '08b'))
+    for i in bin(x)[2:]:
+        if i == '1':
+            ans += '0'
+        else:
+            ans += '1'
+    '''
+    return ~x&255
 #_______________________________________
 
 
-def init():
+def init():  # Запуск
     reg = Registers.objects.all()
     for i in reg:
 
@@ -54,7 +70,7 @@ if not debug_mode:
     init()
 
 
-def install_default(request):
+def install_default(request):  # Сброс настроек в исходные
     content = Lines.objects.all()
     reg = Registers.objects.all()
     global status
@@ -146,7 +162,7 @@ def edit_line(request):  # Отправка данный в синтезатор
         for i in reg:
             j = Registers.objects.filter(id=i)[0]
             print(j.value)
-            j.value = format(reg[i], '02x')+'h'
+            j.value = format_int(reg[i])
             j.save()
             print(j.value)
 
@@ -161,6 +177,7 @@ def edit_line(request):  # Отправка данный в синтезатор
     content = Lines.objects.all()
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
+
 def stop_line(request):  # Подача 0 на выход синтезатора
     stopped = Lines.objects.filter(id=int(request.GET['stop']))[0]
     stopped.status = 'Остановлено'
@@ -168,16 +185,41 @@ def stop_line(request):  # Подача 0 на выход синтезатора
     content = Lines.objects.all()
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
+
 def AJAX_test(request):  # Вывод сообщений
 
     return HttpResponse(str(status))
 
-def turn_on(request):
+
+def turn_on(request):  # Регистр включения-выключения выходного делителя
     content = Lines.objects.filter(id=int(request.GET['edit']))[0]
+    temp = int(Registers.objects.filter(id=10)[0].value[:2], 16)
+    #print(temp)
     if request.GET['turn_on'] == 'true':
         content.turn_on = 1
     else:
         content.turn_on = 0
+    print(content.turn_on)
     content.save()
-    print('\n\n\n\n\n')
+    if content.turn_on == 0:
+        one = 1 << (int(request.GET['edit'])-1)
+        #print(one)
+        temp |= one
+        #print(temp)
+
+        reg = Registers.objects.filter(id=10)[0]
+        reg.value = format_int(temp)
+        reg.save()
+    else:
+        zero = invert_int(1 << (int(request.GET['edit'])-1))
+        #print(zero)
+        temp &= zero
+        #print(temp)
+
+        reg = Registers.objects.filter(id=10)[0]
+        reg.value = format_int(temp)
+        reg.save()
+    print(temp)
+    spi.writebytes([set_adr, 10])  # адрес DSBL5_REG
+    spi.writebytes([set_write, temp])
     return HttpResponse()
