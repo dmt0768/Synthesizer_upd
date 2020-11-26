@@ -67,6 +67,7 @@
          </style>
     </head>
     <body>
+        {% csrf_token %}
         <h1 style="text-align: center;">Панель управления синтезатором</h1>
         <p><p><hr>
 
@@ -79,7 +80,12 @@
                     <p>INPUT {{line.id}}, Hz: <input id="input" type="text" readonly name="input_freq" placeholder="{{line.input_freq}}" value="{{line.input_freq}}"> &nbsp; &nbsp; &nbsp;
                     OUTPUT {{line.id}}, Hz: <input id="output" type="text" name="output_freq" placeholder="{{line.output_freq}}" value="{{line.output_freq}}"> &nbsp; &nbsp; &nbsp;
                     Статус: <input type="text" readonly name="status" value="{{line.status}}"> </p>
-                    <button id="button" type="button" name="edit" value="{{line.id}}" onclick="edit_page('form{{line.id}}')">Отправить и запустить</button>
+                    {% if line.turn_on == 1%}
+                        <p><input type="checkbox" name="turn_on" checked onclick="turn('form{{line.id}}')" >Включить канал</p>
+                    {% else %}
+                        <p><input type="checkbox" name="turn_on" onclick="turn('form{{line.id}}')" >Включить канал</p>
+                    {% endif %}
+                    <button id="button" type="button" name="edit" value="{{line.id}}" onclick="edit_page('form{{line.id}}')">Рассчитать и отправить</button>
                 </form>
 
                 <button name="stop" type="button" onclick="stop_page(this.value, this.name)" value="{{line.id}}" style="display:inline">Остановить</button>
@@ -96,12 +102,27 @@
             </form>
 
              <script>
+
+                    function turn(id) {
+                        var edit = document.getElementById(id).button.value;  // Порт с каким id редактируем?
+                        var turn_on = document.getElementById(id).turn_on.checked;
+
+                        var xhr = new XMLHttpRequest();
+                        var url = new URL('qq://turn_on/');
+                        url.searchParams.set('turn_on', turn_on)
+                        url.searchParams.set('edit', edit)
+
+                        xhr.open("GET", url.toString().slice(5), true);
+                        xhr.send();
+                        //window.alert(url.toString().slice(5));
+                    }
+
                     function edit_page(id) {
                         var edit = document.getElementById(id).button.value;  // Порт с каким id редактируем?
                         var input_freq = document.getElementById(id).input.value;  // input freq
                         var output_freq = document.getElementById(id).output.value;  // Новая частота
-
-                        //window.alert(edit);
+                        var turn_on = document.getElementById(id).turn_on.checked;
+                        //window.alert(turn_on);
                         //window.alert(number);
                         //window.alert(freq);
 
@@ -110,6 +131,7 @@
                         url.searchParams.set('edit', edit);
                         url.searchParams.set('input_freq', input_freq);
                         url.searchParams.set('output_freq', output_freq);
+                        url.searchParams.set('turn_on', turn_on)
 
                         xhr.onload = function() {
                         var serverResponse = document.getElementById("cnt")

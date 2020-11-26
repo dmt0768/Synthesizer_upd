@@ -1,29 +1,34 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.http import require_http_methods
 
 from core.models import Lines, Registers
+from .div_calc2 import get_multiplier
 
-import random
+import time
+
+debug_mode = False
 
 status = ['OK']
 
-import Adafruit_BBIO.SPI as SPI  # Библиотеку Adafruit_BBIO надо будет ещё
-                                 # скачать через pip
-import time
+if not debug_mode:
+    import Adafruit_BBIO.SPI as SPI  # Библиотеку Adafruit_BBIO надо будет ещё
+                                     # скачать через pip
+
 
 # Настроим наш SPI
-spi = SPI.SPI(1,0)  # Используем SPI 1 (он же SPI 0, нумерация с 1)
-spi.msh = 1000000  # По-умолчанию тут 16 000 000
-spi.mode = int('11', 2)
-spi.cshigh = False
+
+if not debug_mode:
+    spi = SPI.SPI(1,0)  # Используем SPI 1 (он же SPI 0, нумерация с 1)
+    spi.msh = 1000000  # По-умолчанию тут 16 000 000
+    spi.mode = int('11', 2)
+    spi.cshigh = False
 
 set_adr = 0  # Команда на считывание адреса
 set_write = int('01000000',2)  # Запись в регистр
 set_inc_write = int('01100000',2)  # Запись с инкрементом адреса регистра
 first_adr = 0  # Самый первый номер регистра
 
-
-print('ADD CODE HERE')
 
 #_______________________________________
 def is_integer(n):
@@ -33,9 +38,39 @@ def is_integer(n):
     except ValueError:
         return False
 
+
+def format_int(x):
+    return format(x, '02x') + 'h'
+
+
+def invert_int(x):
+    '''
+    ans = ''
+    print(format(x, '08b'))
+    for i in bin(x)[2:]:
+        if i == '1':
+            ans += '0'
+        else:
+            ans += '1'
+    '''
+    return ~x&255
 #_______________________________________
 
-def install_default(request):
+
+def init():  # Запуск
+    reg = Registers.objects.all()
+    for i in reg:
+
+        spi.writebytes([set_adr, i.id])  # Установка очередного адреса
+        spi.writebytes([set_write, int(i.value[0:2], 16)])
+
+    return
+
+if not debug_mode:
+    init()
+
+
+def install_default(request):  # Сброс настроек в исходные
     content = Lines.objects.all()
     reg = Registers.objects.all()
     global status
@@ -54,42 +89,16 @@ def install_default(request):
 
     time.sleep(1)
 
-    '''l
-    for i in reg:
-
-        spi.writebytes([set_adr, i.id])  # Установка очередного адреса
-        spi.writebytes([set_write, i.default_value])
-        #i.value = i.default_value
-
-    status = ['Default']'''
-
     #time.sleep(0.1)
 
     for i in reg:
 
         spi.writebytes([set_adr, i.id])  # Установка очередного адреса
-        spi.writebytes([set_write,int(i.value[0:2], 16)])
-        #i.value = i.default_value
-        #i.save()
-    '''k
-
-    status = ['1 MHz']
-    time.sleep(5)
-
-    spi.writebytes([set_adr, 136])  # Установка очередного адреса
-    spi.writebytes([set_write, 64])  # ICAL
-    '''
-
-    status = ['1 MHz + ICAL']
-
-
-    '''for i in reg:
-        global status
-        #spi.write([set_adr, i.id])  # Установка очередного адреса
-        #spi.xfer2([set_write, i.default_value])
+        spi.writebytes([set_write,int(i.default_value[0:2], 16)])
         i.value = i.default_value
-        status = ['Data is send']'''
+        i.save()
 
+    status = ['Default: 1 MHz + ICAL']
 
     return render(request, 'core/Create_tmpl.html', {'Lines': content})
 
@@ -106,26 +115,6 @@ def refresh_page(request):  # Обновляет меняющуюся часть
     status = ['OK']
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
-'''f
-def create_line(request):  # Не используемый функционал
-
-    #  Добваление id вручную
-    if len(Lines.objects.all()) != 0:
-        max_id = max([i.id for i in Lines.objects.all()]) + 1
-    else: max_id = 1
-    Lines.objects.create(id=max_id).save()
-    content = Lines.objects.all()
-
-    return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
-
-
-def delete_line(request):
-    victim = Lines.objects.filter(id=int(request.GET['delete']))[0]
-    victim.delete()
-    content = Lines.objects.all()
-    return render(request, 'core/Create_tmpl.html', {'Lines':content})
-'''
-from .div_calc import get_multiplier
 
 def edit_line(request):  # Отправка данный в синтезатор
     global status
@@ -170,10 +159,15 @@ def edit_line(request):  # Отправка данный в синтезатор
         for i in reg:
             spi.writebytes([set_adr, i])  # Установка очередного адреса
             spi.writebytes([set_write, reg[i]])
+        for i in reg:
+            j = Registers.objects.filter(id=i)[0]
+            print(j.value)
+            j.value = format_int(reg[i])
+            j.save()
+            print(j.value)
 
         spi.writebytes([set_adr, 136])  # Установка очередного адреса
         spi.writebytes([set_write, 64])  # ICAL
-        #status = (bin(reg27), res[0]['N1_LS'])
         status = res
 
 
@@ -183,6 +177,7 @@ def edit_line(request):  # Отправка данный в синтезатор
     content = Lines.objects.all()
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
+
 def stop_line(request):  # Подача 0 на выход синтезатора
     stopped = Lines.objects.filter(id=int(request.GET['stop']))[0]
     stopped.status = 'Остановлено'
@@ -190,6 +185,41 @@ def stop_line(request):  # Подача 0 на выход синтезатора
     content = Lines.objects.all()
     return render(request, 'core/Create_tmpl.html', {'Lines':content}) #redirect('show_main_page')
 
+
 def AJAX_test(request):  # Вывод сообщений
 
     return HttpResponse(str(status))
+
+
+def turn_on(request):  # Регистр включения-выключения выходного делителя
+    content = Lines.objects.filter(id=int(request.GET['edit']))[0]
+    temp = int(Registers.objects.filter(id=10)[0].value[:2], 16)
+    #print(temp)
+    if request.GET['turn_on'] == 'true':
+        content.turn_on = 1
+    else:
+        content.turn_on = 0
+    print(content.turn_on)
+    content.save()
+    if content.turn_on == 0:
+        one = 1 << (int(request.GET['edit'])-1)
+        #print(one)
+        temp |= one
+        #print(temp)
+
+        reg = Registers.objects.filter(id=10)[0]
+        reg.value = format_int(temp)
+        reg.save()
+    else:
+        zero = invert_int(1 << (int(request.GET['edit'])-1))
+        #print(zero)
+        temp &= zero
+        #print(temp)
+
+        reg = Registers.objects.filter(id=10)[0]
+        reg.value = format_int(temp)
+        reg.save()
+    print(temp)
+    spi.writebytes([set_adr, 10])  # адрес DSBL5_REG
+    spi.writebytes([set_write, temp])
+    return HttpResponse()
