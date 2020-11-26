@@ -146,7 +146,7 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
 
         return {'N1_HS': N1_HS, 'N1_LS': N1_LS, 'N2_HS': N2_HS, 'N2_LS': N2_LS, 'N3': N3}
 
-    for cheat in [0.1, 0.5, 1, 2, 3, 4, 5, 6]:  # Cheat cycle
+    for cheat in [0.5, 1, 2, 3, 4, 5]:  # Cheat cycle
 
         flag = True
 

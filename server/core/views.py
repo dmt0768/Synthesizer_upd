@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
 from core.models import Lines, Registers
-from .div_calc import get_multiplier
+from .div_calc2 import get_multiplier
 
 import time
 
