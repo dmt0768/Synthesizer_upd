@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
 from core.models import Lines, Registers
-from .div_calc2 import get_multiplier
+from .div_calc2 import get_multiplier, get_secondary_get_multiplier
 
 import time
 
@@ -149,6 +149,7 @@ def edit_line(request):  # Отправка данный в синтезатор
     #print('\n\n\n\n\n' + str(request.GET) + '\n\n\n\n\n')
     edit = Lines.objects.filter(id=int(request.GET['edit']))[0]
     temp = request.GET
+    line = int(request.GET['edit'])
 
     if (is_integer(temp['input_freq']) != True) or (is_integer(temp['output_freq']) != True):
         edit.status = 'Ошибка ввода'
@@ -160,7 +161,7 @@ def edit_line(request):  # Отправка данный в синтезатор
         edit.status = 'Активно'
         edit.save()
 
-    if int(request.GET['edit']) == 1:  # Main channel
+    if line == 1:  # Main channel
         res = get_multiplier(temp['output_freq'], temp['input_freq'])
         reg = {}
         if res[1]['status']:
@@ -197,10 +198,25 @@ def edit_line(request):  # Отправка данный в синтезатор
             status = 'Failed'
 
     else:
-        main_freq = Lines.objects.filter(id=1)[0].output_freq
-        helper_edit_line_get_N1_LS()
-        print(helper_edit_line_get_N1_LS())
-        print(main_freq)
+        res = get_secondary_get_multiplier(main_fr_out=Lines.objects.filter(id=1)[0].output_freq,
+                                           sec_fr_out=edit.output_freq,
+                                           main_N1_LS=helper_edit_line_get_N1_LS())
+        reg = {}
+        if res[1]['status']:
+            reg[25 + 3 * (line - 1)] = 0
+            reg[26 + 3 * (line - 1)] = 0
+            reg[27 + 3 * (line - 1)] = 0
+            reg[25 + 3 * (line - 1)] |= int(format(res[0]['N1_LS'], '020b')[0:4], 2)
+            reg[26 + 3 * (line - 1)] |= int(format(res[0]['N1_LS'], '020b')[4:12], 2)
+            reg[27 + 3 * (line - 1)] |= int(format(res[0]['N1_LS'], '020b')[12:], 2)
+
+            helper_edit_line_write_regs(reg)
+            make_ICAL()
+            helper_edit_line_write_bd(reg)
+
+            status = res
+        else:
+            status = 'Failed'
 
     content = Lines.objects.all()
     return render(request, 'core/Create_tmpl.html', {'Lines':content})

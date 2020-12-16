@@ -24,7 +24,7 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
             if not (4 <= dictionary['N1_HS'] <= 11):
                 flag = 'Divider test №1 failed!'
             if not (1 <= dictionary['N1_LS'] <= 2 ** 20) and (
-                    (dictionary['N1_LS'] % 2 == 0) or dictionary['N1_LS'] == 1):
+                    (dictionary['N1_LS'] % 2 == 0) or dictionary['N1_LS'] == 1):  # Проверь это условие!
                 flag = 'Divider test №2 failed!'
             if not (4 <= dictionary['N2_HS'] <= 11):
                 flag = 'Divider test №3 failed!'
@@ -195,6 +195,22 @@ def get_multiplier(fr_out: str, fr_in: str = '20000000', delta: float = 0.001, d
         print_result(res)
 
     return [res, {'freq':freq, 'err':err, 'status': flag}]
+
+
+def get_secondary_get_multiplier(main_fr_out, sec_fr_out, main_N1_LS):
+    flag = True
+    res = round(main_fr_out * main_N1_LS / sec_fr_out / 2) * 2
+    if res != 0:
+        freq = main_fr_out * main_N1_LS / res
+        err = sec_fr_out - freq
+    else:
+        err = 'Zero result'
+        freq = 0
+
+    if not (1 <= res <= 2 ** 20) or not ((res % 2 == 0) or (res == 1)):
+        flag = 'Failed'
+
+    return [{'N1_LS': res - 1}, {'freq': freq, 'step_freq': main_fr_out * main_N1_LS, 'err': err, 'status': flag}]
 
 
 if __name__ == '__main__':
